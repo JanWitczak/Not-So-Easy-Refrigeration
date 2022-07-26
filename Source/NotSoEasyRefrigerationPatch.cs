@@ -5,12 +5,13 @@ using Verse;
 
 namespace NotSoEasyRefrigeration
 {
-	public class HarmonyPatches : Verse.Mod
+	[StaticConstructorOnStartup]
+	static class HarmonyPatches
 	{
-		public HarmonyPatches(ModContentPack content) : base(content)
+		static HarmonyPatches()
 		{
-			var harmony = new Harmony("Azuraal.NotSoEasyRefrigeration");
-			var assembly = Assembly.GetExecutingAssembly();
+			Harmony harmony = new Harmony("Azuraal.NotSoEasyRefrigeration");
+			Assembly assembly = Assembly.GetExecutingAssembly();
 			harmony.PatchAll(assembly);
 		}
 	}
