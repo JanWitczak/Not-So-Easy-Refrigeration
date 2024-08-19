@@ -1,7 +1,9 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Collections.Generic;
 using HarmonyLib;
 using Verse;
+using RimWorld;
 
 namespace NotSoEasyRefrigeration
 {
@@ -19,34 +21,47 @@ namespace NotSoEasyRefrigeration
 	[HarmonyPatch(typeof(Verse.GenTemperature), "RotRateAtTemperature")]
 	class RotRatePatch
 	{
-		static Dictionary<int, float> RotRate = new Dictionary<int, float>();
+		static NotSoEasyRefrigerationSettings Settings => NotSoEasyRefrigerationMod.Settings;
+		public static Dictionary<int, float> RotRateDict = new Dictionary<int, float>();
+		public static int MinRotRateThreshold;
 		static RotRatePatch()
 		{
-			for (int t = -19; t < 10; t++)
+			CasheRotRate();
+		}
+		public static void CasheRotRate()
+		{
+			RotRateDict = new Dictionary<int, float>();
+			float normalisationFactor = (float)Math.Pow(Settings.RefrigerationCurveBase, Settings.RefrigerationMaxTemperature);
+			int temperature = (int)Settings.RefrigerationMaxTemperature;
+			float RotRate;
+			while ((RotRate = (float)Math.Pow(Settings.RefrigerationCurveBase, temperature) / normalisationFactor) > Settings.RefrigerationMinRotRate && temperature > Settings.FreezingTemperature)
 			{
-				RotRate.Add(t, (float)System.Math.Pow(1.16f, t) / 4.411435f); // 1.16^x curve, normalised to 1 at x=10
+				RotRateDict.Add(temperature, RotRate);
+				temperature--;
 			}
+			MinRotRateThreshold = temperature;
 		}
 		static void Postfix(float temperature, ref float __result)
 		{
-			if (temperature >= 10f)
+			if (temperature >= Settings.RefrigerationMaxTemperature)
 			{
 				__result = 1f;
 				return;
 			}
-			else if (temperature <= -20f && temperature > -100f)
-			{
-				__result = 0.01f;
-				return;
-			}
-			else if (temperature <= -100f)
+			else if (temperature < Settings.FreezingTemperature)
 			{
 				__result = 0f;
 				return;
 			}
+			else if (temperature <= MinRotRateThreshold)
+			{
+				__result = Settings.RefrigerationMinRotRate;
+				return;
+			}
 			else
 			{
-				__result = RotRate[(int)temperature];
+				if (RotRateDict.ContainsKey((int)temperature)) __result = RotRateDict[(int)temperature];
+				else Log.Error($"NotSoEasyRefrigeration: Dictionary does not contain key: {(int)temperature}.");
 				return;
 			}
 		}
