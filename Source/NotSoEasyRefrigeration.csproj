@@ -5,13 +5,15 @@
 		<TargetFramework>net48</TargetFramework>
 		<Deterministic>true</Deterministic>
 		<Configuration>Release</Configuration>
-		<DebugType>none</DebugType>
+		<DebugType>embedded</DebugType>
 		<Optimize>true</Optimize>
+		<IsPublishable>true</IsPublishable>
+		<PublishDir>../1.6/Assemblies</PublishDir>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4498-beta" />
-		<PackageReference Include="Lib.Harmony" Version="2.3.6" />
+		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.*" />
+		<PackageReference Include="Lib.Harmony" Version="2.4.*" />
 	</ItemGroup>
 </Project>
